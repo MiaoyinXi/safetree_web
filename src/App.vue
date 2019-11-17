@@ -1,6 +1,6 @@
 <template>
 <v-app>
-  <v-app-bar app fixed color="red darken-3" dark>
+  <v-app-bar app fixed color="primary lighten-1" dark>
     <v-toolbar-title class="text-xs-center">
       {{title + ' ' + build.version}}
     </v-toolbar-title>
@@ -10,16 +10,18 @@
       <v-layout column justify-center align-center>
         <v-flex xs12 sm8 md6>
           <v-card class="elevation-3">
-            <v-card-text class="text-xs-center">
-              <p>整个班的安全作业都无忧了 再也不用催家长/学生们了～
+            <v-card-text>
+              <p style="text-align:center;">整个班的安全作业都无忧了 再也不用催家长/学生们了～
                 <br>为了保障每个同学能够顺利完成安全作业。完成速度会慢点，大概需要两分钟左右时间 请不要重复提交。
               </p>
             </v-card-text>
             <v-card-actions>
+              <!--老师账号登录 未完成-->
+              <!--<v-textarea name="teachers_login" label="批量登录老师账号" hint="账号[空格]密码 每个一行"></v-textarea>-->
               <v-form ref="form" v-model="valid" lazy-validation style="margin:auto;" class="text-xs-center">
                 <v-text-field v-model="username" prepend-icon="account_circle" :rules="usernamerules" label="教师用户名" required></v-text-field>
                 <v-text-field v-model="password" prepend-icon="https" :rules="passwordrules" label="密码" required type="password"></v-text-field>
-                <v-btn :disabled="!valid" :block=true @click="login">登录</v-btn>
+                <v-btn color="primary" :disabled="!valid" :block=true @click="login">登录</v-btn>
               </v-form>
             </v-card-actions>
           </v-card>
@@ -32,12 +34,10 @@
             </v-card-text>
           </v-card>
         </v-flex>
-        <v-flex>
-          <v-btn class="green" dark v-if="!timeline_show" @click="timeline_show = true">展开更新日志</v-btn>
-        </v-flex>
-        <v-timeline v-if="timeline_show">
+        <v-timeline>
           <v-timeline-item
             v-for="(year, i) in timelines"
+            v-show="i == 0 || timeline_show"
             :key="i"
             :color="year.color"
             small>
@@ -52,175 +52,186 @@
             </div>
           </v-timeline-item>
         </v-timeline>
-          <v-dialog style="z-index:233333;" v-model="dialog" fullscreen hide-overlay transition="dialog-bottom-transition">
-            <v-card class="indigo lighten-5">
-              <v-toolbar color="indigo">
-                <v-btn icon v-show="progress_value > 99" @click="dialog = false">
-                  <v-icon>close</v-icon>
-                </v-btn>
-              </v-toolbar>
-              <v-container>
-                <v-alert :value="true" type="success">
-                  {{welcome_text}}
-                </v-alert>
-            <v-stepper v-model="e1">
-              <v-stepper-header>
-                <v-stepper-step :complete="e1 > 1" step="1">选择课程</v-stepper-step>
-                <v-divider></v-divider>
-                <v-stepper-step :complete="e1 > 2" step="2">选择学生账号</v-stepper-step>
-                <v-divider></v-divider>
-                <v-stepper-step step="3">日志输出</v-stepper-step>
-              </v-stepper-header>
-              <v-stepper-items>
-                <v-stepper-content step="1">
-                  <v-alert :value="true" type="info">
-                    温馨提示 已授课的课程并且没完成的 才会在这边出现哦～
-                    <br>
-                    专题课程会一直显示在下面列表，请不要提交多次。
-                  </v-alert>
-                  <v-alert :value="true" type="success">
-                    地区专题作业（没有在这边显示的） 也可以做了！
-                  </v-alert>
-                  <v-data-table
-                    v-model="t1"
-                    :headers="[{text:'标题',value:'title',sortable:false}]"
-                    items-per-page=200
-                    :items="v1"
-                    hide-default-footer
-                    item-key="title"
-                    show-select
-                    >
-                    <template v-slot:top>
-
-                    </template>
-                  </v-data-table>
-                  <v-btn color="pink lighten-1" @click="step(2)" dark>下一步</v-btn>
-                  <v-btn color="lighten-1"  @click="dialog=false">退出登录</v-btn>
-                  <v-card>
-                    <div style="text-align:center;">
-                      <video width="400" controls>
-                      <source src="@/assets/input_special_url.mp4" type="video/mp4">
-                    </video>
-                    </div>
+        <v-flex>
+          <v-btn v-if="!timeline_show" @click="timeline_show = true">展开更新日志</v-btn>
+        </v-flex>
+        <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition">
+          <v-toolbar dark color="primary lighten-1">
+            <v-btn icon dark @click="dialog = false" v-show="progress_value || e1 !== 3">
+              <v-icon>close</v-icon>
+            </v-btn>
+          </v-toolbar>
+          <v-card>
+            <v-container>
+              <v-alert :value="true" type="success">
+                {{welcome_text}}
+              </v-alert>
+              <v-stepper v-model="e1">
+                <v-stepper-header>
+                  <v-stepper-step :complete="e1 > 1" step="1">选择课程</v-stepper-step>
+                  <v-divider></v-divider>
+                  <v-stepper-step :complete="e1 > 2" step="2">选择学生账号</v-stepper-step>
+                  <v-divider></v-divider>
+                  <v-stepper-step step="3">运行</v-stepper-step>
+                </v-stepper-header>
+                <v-stepper-items>
+                  <v-stepper-content step="1">
                     <v-alert :value="true" type="info">
-                      请按照视频所示，把专题作业链接复制到下面
+                      温馨提示 已授课的课程并且没完成的 才会在这边出现哦～
+                      <br>
+                      专题课程会一直显示在下面列表，请不要多次提交。
                     </v-alert>
+                    <v-data-table
+                      v-model="t1"
+                      :headers="[{text:'标题',value:'title',sortable:false}]"
+                      :items-per-page=200
+                      :items="v1"
+                      hide-default-footer
+                      item-key="title"
+                      show-select>
+                      <template v-slot:top>
+                      </template>
+                    </v-data-table>
                     <v-card-actions>
-                      <v-text-field label="专题作业链接" v-model="special_url" required type="text"></v-text-field>
+                      <v-btn @click="dialog=false">退出登录</v-btn>
+                      <v-btn color="pink lighten-1" @click="step(2)" dark>下一步</v-btn>
                     </v-card-actions>
-                    <v-btn dark color="info" block @click="get_special(special_url)">提交</v-btn>
-                  </v-card>
-                </v-stepper-content>
-                <v-stepper-content step="2">
-                  <v-alert :value="true" type="error">
-                    学生密码会在做题时候自动重置为 123456
-                  </v-alert>
-                  <v-data-table
-                    v-model="t2"
-                    hide-default-footer
-                    show-select
-                    items-per-page=200
-                    :headers="[{text:'用户名',value:'username'},{text:'密码',value:'password'}]"
-                    :items="v2"
-                    :value="vv2"
-                    item-key="username"
-                    class="elevation-5">
-                    <template v-slot:top>
-
-                    </template>
-                  </v-data-table>
-                  <v-btn color="indigo" dark @click="e1 = 1">上一步</v-btn>
-                  <v-btn color="indigo" dark @click="step(3)">开始</v-btn>
-                </v-stepper-content>
-                <v-stepper-content step="3" style="text-align:center;">
-                  <p>提交队列 已完成 {{ Math.round(progress_value)}}%</p>
-                  <v-progress-linear
-                    :indeterminate="progress_query"
-                    :active="progress_show"
-                    v-model="progress_value"
-                    color="pink lighten-2"
-                    background-color="green lighten-2"
-                    :query="true"></v-progress-linear>
-                    <p>{{donate_description}}</p>
-                    <v-row>
-                      <v-col v-for="c in complete_status" :key="c.username" lg="3" cols="auto">
-                        <v-card :dark="c.dark === true" :color="c.color">
-                          <v-overlay :absolute=true :value="c.loading == true">
-                        <v-progress-circular
-                          indeterminate
-                          color="primary"
-                        ></v-progress-circular>
-                        </v-overlay>
-                          <v-card-text style="text-align:center;">
-                            {{c.username}}
-                          </v-card-text>
-                        </v-card>
+                    <v-card>
+                      <v-card-text>
+                        <div style="text-align:center;">
+                          <video width="400" controls>
+                          <source src="@/assets/input_special_url.mp4" type="video/mp4">
+                        </video>
+                        </div>
+                        <v-alert :value="true" type="info">
+                          请按照视频所示，把专题作业链接复制到下面
+                        </v-alert>
+                        </v-card-text>
+                        <v-card-actions>
+                          <v-text-field label="专题作业链接" v-model="special_url_input" required type="text"></v-text-field>
+                        </v-card-actions>
+                        <v-btn color="primary" block @click="get_special(special_url_input)">提交</v-btn>
+                    </v-card>
+                  </v-stepper-content>
+                  <v-stepper-content step="2">
+                    <v-alert :value="true" type="error">
+                      学生密码会在做题时候自动重置为 123456
+                    </v-alert>
+                    <v-data-table
+                      v-model="t2"
+                      hide-default-footer
+                      show-select
+                      :items-per-page=200
+                      :headers="[{text:'用户名',value:'username'},{text:'密码',value:'password'}]"
+                      :items="v2"
+                      :value="vv2"
+                      item-key="username">
+                      <template v-slot:top>
+                      </template>
+                    </v-data-table>
+                    <v-card-actions>
+                      <v-btn @click="e1 = 1">上一步</v-btn>
+                      <v-btn color="primary" @click="step(3)">开始</v-btn>
+                    </v-card-actions>
+                  </v-stepper-content>
+                  <v-stepper-content step="3" style="text-align:center;">
+                    <p>提交队列 已完成 {{ Math.round(progress_value)}}%</p>
+                    <v-progress-linear
+                      :indeterminate="progress_query"
+                      :active="progress_show"
+                      v-model="progress_value"
+                      color="pink lighten-2"
+                      background-color="green lighten-2"
+                      :query="true"></v-progress-linear>
+                      <p>{{donate_description}}</p>
+                      <v-layout justify-center>
+                        <donate></donate>
+                      </v-layout>
+                      <v-row>
+                        <v-col v-for="c in complete_status" :key="c.username" lg="2" cols="auto">
+                          <v-card :dark="c.dark === true" :color="c.color">
+                            <v-overlay :absolute=true :value="c.loading == true">
+                              <v-progress-circular
+                                indeterminate
+                                color="primary"
+                              ></v-progress-circular>
+                            </v-overlay>
+                            <v-card-text style="text-align:center;">
+                              {{c.name}}
+                            </v-card-text>
+                          </v-card>
+                          <!--日志输出 未完成-->
+                        <!--<v-card>
+                            <v-card-text style="text-align:center;">
+                              {{
+                                (c.data.map((x)=>{
+                                  return x.type + '|' + x.username + ' -> '  + x.value
+                                })).join("\n")
+                              }}
+                            </v-card-text>
+                        </v-card>-->
                       </v-col>
                     </v-row>
-
-
-                </v-stepper-content>
-              </v-stepper-items>
-          </v-stepper>
-        </v-container>
-      </v-card>
-    </v-dialog>
-  <v-dialog v-model="dialog1" hide-overlay persistent width="300" dark>
-      <v-card color="indigo">
-        <v-card-text>
-          Loading....
-          <v-progress-linear  indeterminate color="white" class="mb-0"></v-progress-linear>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
-<v-dialog persistent v-model="terms" width="600px">
-        <v-card>
-        <v-card-title>
-          <span class="headline">安全教育平台助手使用条款</span>
-        </v-card-title>
-        <v-card-text>上次更新 2019-08-17 21:29:00
-          <br><br>安全教育平台助手是由 huggy 提供的服务，本服务条款（下称“服务条款”）是您与 huggy 关于您（“您”或“用户”）访问和使用安全教育平台助手的主要协议。
-          <h3>隐私策略</h3>
-          <span>1.您的IP地址会被用来识别安全教育平台的登录网址，因此不同地方的ip使用本服务可能会登录不了，另外本站不向欧盟用户提供服务。</span>
-          <br>
-          <span>2.您登录使用的账号/密码以及老师账号/学生账号的 COOKIE 可能会在日志中被记录下来，以便供错误跟踪，处理，请悉知。</span>
-          <br>
-          <span>3.本站绝对不向第三方透露/售卖任何资料与数据</span>
-          <h3>免责声明</h3>
-          <span>您在本网站的任何操作若导致被您所在的市安全教育平台黑名单、问责、罚款，被上级领导问话，均与本人无关，本人不承担任何相关责任。</span>
-          <h3>使用</h3>
-          <span>本网站只需要输入老师的安全教育平台密码 登录 再点几下等待完成即刻完全全班作业。</span>
-          <h3>技术支持</h3>
-          <span>如果您有任何问题、建议、意见，或者程序运行中遇到了任何错误请发邮件到 <code>i@huggy.moe</code>来反馈</span>
-          <h3>开源</h3>
-          <span>本程序前端在 <a href="https://github.com/xiao201261/safetree_web" target="_github">https://github.com/xiao201261/safetree_web</a> 中开源并且遵循 <a href="https://github.com/xiao201261/safetree_web/blob/master/LICENSE" target="_github" >MIT</a> 开发协议。
-            <br>使用者可自由修改网页也可用于商业用途，或者自己修改使用。
-            <br>本程序后端暂时不开源，也许将来不维护后会放出源码。部分登录/做题代码可以参考我在2017年的 <a href="https://gist.github.com/xiao201261/e623f93b7bcb93dddcf24cef6f0713ad" target="_gist">gist</a> 供研究。
-          </span>
-          <br><br><br><br><br><br>
-          <h1>Made with <span style="color:#ff69b4;">♥</span></h1>
-          </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn color="green lighten-1" dark @click="blank_page">不同意</v-btn>
-          <v-btn color="grey lighten-3" text @click="terms_agree">同意</v-btn>
-        </v-card-actions>
-      </v-card>
-      </v-dialog>
-    <v-snackbar
-      v-model="snackbar"
-      :color=snackbar_color
-      :top="true"
-    >
-      {{ snackbar_text }}
-    </v-snackbar>
-  </v-layout>
+                  </v-stepper-content>
+                  </v-stepper-items>
+                </v-stepper>
+              </v-container>
+            </v-card>
+          </v-dialog>
+          <v-overlay :value="overlay">
+            <p>网络不可用/服务器崩溃 请稍后刷新看看</p>
+            <p>您也可以发邮件 <code>i@huggy.moe</code> 来反馈</p>
+          </v-overlay>
+          <v-overlay style="z-index:233;" :value="loading_overlay">
+            <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
+          </v-overlay>
+          <v-dialog persistent v-model="terms" width="600px">
+            <v-card>
+              <v-card-title>
+                <span class="headline">安全教育平台助手使用条款</span>
+              </v-card-title>
+              <v-card-text>上次更新 2019-08-17 21:29:00
+                <br><br>安全教育平台助手是由 huggy 提供的服务，本服务条款（下称“服务条款”）是您与 huggy 关于您（“您”或“用户”）访问和使用安全教育平台助手的主要协议。
+                <h3>隐私策略</h3>
+                <span>1.您的IP地址会被用来识别安全教育平台的登录网址，因此不同地方的ip使用本服务可能会登录不了，另外本站不向欧盟用户提供服务。</span>
+                <br>
+                <span>2.您登录使用的账号/密码以及老师账号/学生账号的 COOKIE 可能会在日志中被记录下来，以便供错误跟踪，处理，请悉知。</span>
+                <br>
+                <span>3.本站绝对不向第三方透露/售卖任何资料与数据</span>
+                <h3>免责声明</h3>
+                <span>您在本网站的任何操作若导致被您所在的市安全教育平台黑名单、问责、罚款，被上级领导问话，均与本人无关，本人不承担任何相关责任。</span>
+                <h3>使用</h3>
+                <span>本网站只需要输入老师的安全教育平台密码 登录 再点几下等待完成即刻完全全班作业。</span>
+                <h3>技术支持</h3>
+                <span>如果您有任何问题、建议、意见，或者程序运行中遇到了任何错误请发邮件到 <code>i@huggy.moe</code>来反馈</span>
+                <h3>开源</h3>
+                <span>本程序前端在 <a href="https://github.com/xiao201261/safetree_web" target="_github">https://github.com/xiao201261/safetree_web</a> 中开源并且遵循 <a href="https://github.com/xiao201261/safetree_web/blob/master/LICENSE" target="_github" >MIT</a> 开发协议。
+                  <br>使用者可自由修改网页也可用于商业用途，或者自己修改使用。
+                  <br>本程序后端暂时不开源，也许将来不维护后会放出源码。部分登录/做题代码可以参考我在2017年的 <a href="https://gist.github.com/xiao201261/e623f93b7bcb93dddcf24cef6f0713ad" target="_gist">gist</a> 供研究。
+                </span>
+                <br><br><br><br><br><br>
+                <h1>Made with <span style="color:#ff69b4;">♥</span></h1>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="green lighten-1" dark @click="blank_page">不同意</v-btn>
+                <v-btn color="grey lighten-3" @click="terms_agree">同意</v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+          <v-snackbar
+            v-model="snackbar"
+            :color=snackbar_color
+            :top="true">
+            {{ snackbar_text }}
+          </v-snackbar>
+        </v-layout>
       </v-container>
     </v-content>
     <v-footer class="pa-3">
-    <v-spacer></v-spacer>
-    <div>{{footer}} Ver.{{build.version}} | <span :title="build.hash">#{{build.hash.slice(0,6)}}</span></div>
-  </v-footer>
+      <v-spacer></v-spacer>
+      <div>{{footer}} | <span :title="'hash: ' + build.hash">#{{build.hash.slice(0,6)}}</span></div>
+    </v-footer>
   </v-app>
 </template>
 
@@ -229,7 +240,7 @@
 import axios from 'axios'
 import donate from './components/donate.vue'
 
-console.log(`%c 安全教育平台助手 %c Copyright \xa9 2018-%s \n  __                                               \n/  |                                              \n$$ |____   __    __   ______    ______   __    __ \n$$      \ /  |  /  | /      \  /      \ /  |  /  |\n$$$$$$$  |$$ |  $$ |/$$$$$$  |/$$$$$$  |$$ |  $$ |\n$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |\n$$ |  $$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |\n$$ |  $$ |$$    $$/ $$    $$ |$$    $$ |$$    $$ |\n$$/   $$/  $$$$$$/   $$$$$$$ | $$$$$$$ | $$$$$$$ |\n                    /  \__$$ |/  \__$$ |/  \__$$ |\n                    $$    $$/ $$    $$/ $$    $$/ \n                     $$$$$$/   $$$$$$/   $$$$$$/  `, 'font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size:4em;color:#00bbee;-webkit-text-fill-color:#ff69b4;-webkit-text-stroke: 1px #ff69b4;', "font-size:12px;color:#999999;", (new Date).getFullYear());
+console.log(`%c 安全教育平台助手 %c Copyright \xa9 2018-%s \n  __                                               \n/  |                                              \n$$ |____   __    __   ______    ______   __    __ \n$$      \ /  |  /  | /      \  /      \ /  |  /  |\n$$$$$$$  |$$ |  $$ |/$$$$$$  |/$$$$$$  |$$ |  $$ |\n$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |\n$$ |  $$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |\n$$ |  $$ |$$    $$/ $$    $$ |$$    $$ |$$    $$ |\n$$/   $$/  $$$$$$/   $$$$$$$ | $$$$$$$ | $$$$$$$ |\n                    /  \__$$ |/  \__$$ |/  \__$$ |\n                    $$    $$/ $$    $$/ $$    $$/ \n                     $$$$$$/   $$$$$$/   $$$$$$/  `, 'font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size:4em;color:#00bbee;-webkit-text-fill-color:#ff69b4;-webkit-text-stroke: 1px #ff69b4;', "font-size:12px;color:#999999;", (new Date).getFullYear())
 axios.defaults.baseURL = 'http://127.0.0.1:3000/api'
 if(process.env.NODE_ENV === 'production')
   axios.defaults.baseURL = 'https://aq.gayhub.xyz:8443/api'
@@ -238,15 +249,14 @@ export default {
     
     data: () => ({
       dialog: false,
-      e1: 0,
+      e1: 1,
       t1: [],
       v1: [],
       vv1: [],
       t2: [],
       v2: [],
       vv2: [],
-      timelines: [
-      ],
+      timelines: [],
       timeline_show : false,
       drawer: undefined,
       build: require('../build.json'),
@@ -255,9 +265,11 @@ export default {
       progress_value: 0,
       progress_query: true,
       progress_show: true,
+      overlay: false,
       special_url: '',
+      special_url_input: '',
       joinurl: false,
-      dialog1: false,
+      loading_overlay: false,
       special_data: [],
       welcome_text: '',
       snackbar: false,
@@ -277,12 +289,25 @@ export default {
         v => !!v || '密码是必须的'
       ],
       teacher_cookie: '',
-      complete_status: [
-    ]
+      complete_status: []
     }),
     async mounted(){
       if(matchMedia('(prefers-color-scheme: dark)').matches){
         this.$vuetify.theme.dark = true
+      }
+      try {
+        let data = await axios({
+          url: '/version.json?_t' + new Date().getTime(),
+          baseURL: '/'
+        })
+        let urlhash = new URL(location.href).searchParams.get('hash')
+        if(urlhash)
+          window.history.replaceState( {} , '', '/' );
+        if(data.data.hash !== this.build.hash && urlhash !== data.data.hash)
+          location.href = '?hash=' + data.data.hash
+        
+      } catch (error) {
+        
       }
       if(!localStorage.terms){
         this.terms = true
@@ -296,16 +321,15 @@ export default {
           this.donate_description = data.donate_description
         }
       } catch (error) {
-        alert('您的网络或者服务器暂时不可用 无法进行任何操作 可以尝试刷新页面')
+        this.overlay = true
       }
   },
     methods: {
       async login () {
         if (this.$refs.form.validate()) {
-          this.valid = false
           this.e1 = 1
-          this.dialog1 = true
-          let data = await axios.post('getstudents_by_teacher_account', {
+          this.loading_overlay = true
+          let data = await axios.post('login', {
             username: this.username,
             password: this.password,
           }).catch(e=>{
@@ -313,7 +337,7 @@ export default {
             this.snackbar_color = "error"
             this.snackbar = true
           })
-          this.dialog1 = false
+          this.loading_overlay = false
           if(data.data.ok){
             data = data.data
             this.class = data
@@ -323,18 +347,17 @@ export default {
             this.snackbar = true
             this.welcome_text = '欢迎你 ' + this.username + ' 您的班级一共有 ' + this.class.students.length + ' 位学生 一共还有 ' + this.class.skills.length + ' 次技能训练作业未完成'
             this.teacher_cookie = data.cookie
+            this.special_url = data.special_url
             this.special_data = (await axios('data').catch(e=>{
               this.snackbar_text = "发生错误"
               this.snackbar_color = "error"
               this.snackbar = true
             })).data
             this.v1 = this.special_data.concat(data.skills).concat(this.custom_specials)
-            console.log(this.v1)
             this.v2 = data.students
-            if(this.v1.length > 0){
-              this.dialog = true
-            }else{
-              this.snackbar_text = "您的班级已经完成了全部已完成的作业～"
+            this.dialog = true
+            if(this.v1.length === 0){
+              this.snackbar_text = "您的班级已经完成了全部已完成的作业 要做当地专题作业请继续"
               this.snackbar_color = "success"
               this.snackbar = true
             }
@@ -358,45 +381,43 @@ export default {
           case 2:
             if(this.t1.length > 0)
               this.e1 = 2
-            break;
+            break
           case 3:
             if(this.t2.length > 0){
-              this.dialog1 = true
+              this.loading_overlay = true
               setTimeout(() => {
                 this.e1 = 3
-                this.dialog1 = false
+                this.loading_overlay = false
                 
                 setTimeout(() => {
                   this.progress_query = false
-                }, 1000);
-              }, 1000);
+                }, 1000)
+              }, 1000)
               this.complete_status = this.t2
               this.run(0)
             }
           default:
-            break;
+            break
         }
         setTimeout(() => {
           this.$vuetify.goTo(0)
-        }, 100);
+        }, 500)
       },
       async get_special(url) {
           let data = await axios.post('get_special',{url,city: this.class.city})
           if(data.data.ok){
-            console.log(this.v1)
             this.v1.push(data.data)
             this.custom_specials.push(data.data)
-            console.log(this.custom_specials)
           }
       },
       async check_complete(sid,count,retry = 0){
-        console.log(sid,count)
         let data = await axios('log/' + (this.t2)[sid].studentid)
         if(this.complete_status[sid].loading === undefined)
           this.$set(this.complete_status[sid],'loading',true)
         setTimeout(()=>{
           if(data.data){
             data = data.data
+            this.$set(this.complete_status[sid],'text',data)
             if(data.length >= count){
               this.$set(this.complete_status[sid],'loading',false)
               this.$set(this.complete_status[sid],'color','success')
@@ -404,7 +425,15 @@ export default {
               if(sid < this.t2.length -1)
                 this.check_complete(sid + 1,count,0)
             }else{
-              this.check_complete(sid,count,retry + 1)
+              if(retry < 30)
+                this.check_complete(sid,count,retry + 1)
+              else{
+                this.$set(this.complete_status[sid],'loading',false)
+                this.$set(this.complete_status[sid],'color','error')
+                this.$set(this.complete_status[sid],'dark',true)
+                if(sid < this.t2.length -1)
+                  this.check_complete(sid + 1,count,0)
+              }
             }
         }
         },500)
@@ -418,7 +447,7 @@ export default {
           return e.type === 0
         })
         let teacher_cookie = this.teacher_cookie
-        console.log(teacher_cookie)
+        await axios('clearlog/' + studentid)
         if(skillswork.length > 0)
           await axios.post('work',{
             studentid: studentid,
@@ -427,7 +456,6 @@ export default {
             data: JSON.stringify(skillswork),
             city: this.class.city,
             teacher_cookie: teacher_cookie
-
           })
         let specialwork_ = w.filter((e,i,a)=>{
           return e.type === 1
@@ -435,9 +463,10 @@ export default {
         let specialwork = []
         let countspecialwork = 0
         for (let i = 0; i < specialwork_.length; i++) {
+          countspecialwork += specialwork_[i].request.length
           specialwork.push(specialwork_[i])
-          countspecialwork += specialwork.request.length
         }
+        console.log(countspecialwork)
         if(specialwork.length > 0)
           await axios.post('workspecial',{
             studentid: studentid,
@@ -445,6 +474,7 @@ export default {
             password: password,
             data: specialwork,
             city: this.class.city,
+            special_url: this.special_url,
             teacher_cookie: teacher_cookie
           })
         
@@ -460,6 +490,7 @@ export default {
       }
     },
     components: {
+      // 就是捐赠页面
       donate: donate
     },
   }

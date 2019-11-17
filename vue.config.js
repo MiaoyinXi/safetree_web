@@ -1,5 +1,5 @@
 module.exports = {
     configureWebpack: {
-        devtool: 'none'
+        devtool: process.env.NODE_ENV === 'production' ? 'none': 'source-map'
     }
   }

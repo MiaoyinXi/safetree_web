@@ -3,18 +3,20 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="theme-color" content="#ff63c5">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
     <link rel="icon" href="<%= BASE_URL %>favicon.ico">
     <title>安全教育平台助手</title>
     <style>
      @media (prefers-color-scheme: dark){
         html{
-          background: #2d2e2f;
+          background: #303030;
         }
      }
     </style>
     <meta name="description" content="安全教育平台助手 支持全国安全教育平台自动完成 方便快捷">
-    <meta name="theme-color" content="#c62828">
+    <meta name="keywords" content="安全教育平台,安全教育平台助手,安全教育平台做题机,安全教育平台自动完成">
+    <meta name="theme-color" content="">
     <link rel="apple-touch-icon" sizes="57x57" href="/img/icons/apple-icon-57x57.png">
     <link rel="apple-touch-icon" sizes="60x60" href="/img/icons/apple-icon-60x60.png">
     <link rel="apple-touch-icon" sizes="72x72" href="/img/icons/apple-icon-72x72.png">
@@ -29,13 +31,26 @@
     <link rel="icon" type="image/png" sizes="96x96" href="/img/icons/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/img/icons/favicon-16x16.png">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="stylesheet" href="https://fonts.lug.ustc.edu.cn/css?family=Roboto:100,300,400,500,700,900">
-    <link href="https://fonts.lug.ustc.edu.cn/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.loli.net/css?family=Roboto:100,300,400,500,700,900">
+    <link href="https://fonts.loli.net/icon?family=Material+Icons" rel="stylesheet">
   </head>
   <body>
     <noscript>
       <strong>We're sorry but sfweb doesn't work properly without JavaScript enabled. Please enable it to continue.</strong>
     </noscript>
+    <script>
+      try {
+        eval('(async function () {})')
+      } catch (error) {
+        location.href = '/browser.html'
+      }
+      let ua = window.navigator.userAgent
+      if(ua.indexOf('MSIE ') > -1 || ua.indexOf('Trident/') > -1)
+        location.href = '/browser.html'
+      let uachrome = ua.match(/Chrom(e|ium)\/([0-9]+)\./)
+      if(ua.indexOf('Chrom') > 0 && uachrome[2] < 61)
+        location.href = '/browser.html'
+    </script>
     <div id="app"></div>
     <!-- built files will be auto injected -->
   </body>
