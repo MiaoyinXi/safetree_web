@@ -13,7 +13,7 @@ jobs:
       - name: set GITHUB_SHA env
         run: echo ::set-env name=GITHUB_SHA::$(echo $GITHUB_SHA)
       - name: generate build version
-        run: node genbuild.json.js {{ env.GITHUB_SHA }}
+        run: node genbuild.json.js ${{ env.GITHUB_SHA }}
       - uses: borales/actions-yarn@v2.0.0
         with:
           cmd: build          
