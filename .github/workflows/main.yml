@@ -10,7 +10,7 @@ jobs:
         with:
           cmd: install
       - name: generate build version
-        run: node genbuild.js $GITHUB_SHA
+        run: node genbuild.json.js {{ $GITHUB_SHA }}
       - uses: borales/actions-yarn@v2.0.0
         with:
           cmd: build          
