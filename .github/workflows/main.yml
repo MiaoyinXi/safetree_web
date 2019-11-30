@@ -1,0 +1,22 @@
+name: CI
+on: [push]
+jobs:
+  build:
+    name: build web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: install
+      - name: generate build version
+        run: node genbuild.js $GITHUB_SHA
+      - uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: build          
+      - name: Upload artifact
+        uses: actions/upload-artifact@v1.0.0
+        with:
+          name: safetree.zip
+          path:  dist
+        
