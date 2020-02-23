@@ -1,6 +1,6 @@
 <template>
 <v-app>
-  <v-app-bar app fixed color="primary lighten-1" dark>
+  <v-app-bar app fixed color="blue lighten-1" dark>
     <v-toolbar-title class="text-xs-center">
       {{title + ' ' + build.version}}
     </v-toolbar-title>
@@ -16,7 +16,6 @@
               </p>
             </v-card-text>
             <v-card-actions>
-              <!--老师账号登录 未完成-->
               <!--<v-textarea name="teachers_login" label="批量登录老师账号" hint="账号[空格]密码 每个一行"></v-textarea>-->
               <v-form ref="form" v-model="valid" lazy-validation style="margin:auto;" class="text-xs-center">
                 <v-text-field v-model="username" prepend-icon="account_circle" :rules="usernamerules" label="教师用户名" required></v-text-field>
@@ -147,6 +146,7 @@
                       <v-layout justify-center>
                         <donate></donate>
                       </v-layout>
+                    <p>以下进度仅供参考 上面的进度条走完其实就可以了</p>
                       <v-row>
                         <v-col v-for="c in complete_status" :key="c.username" lg="2" cols="auto">
                           <v-card :dark="c.dark === true" :color="c.color">
@@ -160,7 +160,6 @@
                               {{c.name}}
                             </v-card-text>
                           </v-card>
-                          <!--日志输出 未完成-->
                         <!--<v-card>
                             <v-card-text style="text-align:center;">
                               {{
@@ -292,8 +291,19 @@ export default {
       complete_status: []
     }),
     async mounted(){
-      if(matchMedia('(prefers-color-scheme: dark)').matches){
-        this.$vuetify.theme.dark = true
+      let media = window.matchMedia('(prefers-color-scheme: dark)');
+      let callback = (e) => {
+          let prefersDarkMode = e.matches;
+          if (prefersDarkMode) {
+            this.$vuetify.theme.dark = true
+          }else{
+            this.$vuetify.theme.dark = false
+          }
+      }
+      if (typeof media.addEventListener === 'function') {
+          media.addEventListener('change', callback);
+      } else if (typeof media.addListener === 'function') {
+          media.addListener(callback);
       }
       try {
         let data = await axios({
@@ -307,7 +317,7 @@ export default {
           location.href = '?hash=' + data.data.hash
         
       } catch (error) {
-        
+        this.overlay = true
       }
       if(!localStorage.terms){
         this.terms = true
@@ -353,6 +363,15 @@ export default {
               this.snackbar_color = "error"
               this.snackbar = true
             })).data
+            /*if(localStorage.teachers){
+              let teachers = JSON.parse(localStorage.teachers)
+              teachers.push({
+                username: this.username,
+                cookie: data.cookie
+              })
+              localStorage.teachers = JSON.stringify(teachers)
+            }
+            */
             this.v1 = this.special_data.concat(data.skills).concat(this.custom_specials)
             this.v2 = data.students
             this.dialog = true
@@ -381,10 +400,12 @@ export default {
           case 2:
             if(this.t1.length > 0)
               this.e1 = 2
+              this.t2 = []
             break
           case 3:
             if(this.t2.length > 0){
               this.loading_overlay = true
+              this.complete_status = this.t2
               setTimeout(() => {
                 this.e1 = 3
                 this.loading_overlay = false
@@ -393,7 +414,6 @@ export default {
                   this.progress_query = false
                 }, 1000)
               }, 1000)
-              this.complete_status = this.t2
               this.run(0)
             }
           default:
@@ -411,6 +431,8 @@ export default {
           }
       },
       async check_complete(sid,count,retry = 0){
+        if(this.complete_status.length === 0)
+          return true
         let data = await axios('log/' + (this.t2)[sid].studentid)
         if(this.complete_status[sid].loading === undefined)
           this.$set(this.complete_status[sid],'loading',true)
@@ -422,7 +444,7 @@ export default {
               this.$set(this.complete_status[sid],'loading',false)
               this.$set(this.complete_status[sid],'color','success')
               this.$set(this.complete_status[sid],'dark',true)
-              if(sid < this.t2.length -1)
+              if(sid < this.t2.length - 1)
                 this.check_complete(sid + 1,count,0)
             }else{
               if(retry < 30)
@@ -490,7 +512,6 @@ export default {
       }
     },
     components: {
-      // 就是捐赠页面
       donate: donate
     },
   }
