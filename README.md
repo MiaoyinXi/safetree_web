@@ -1,6 +1,7 @@
 # 安全教育平台助手前端
 
-[![构建状态](https://dev.tencent.com/badges/huggy_/safetree_web/26573/build.svg)](https://dev.tencent.com/u/huggy_/p/safetree_web/ci/job)
+![CI](https://github.com/xiao201261/safetree_web/workflows/CI/badge.svg)
+
 ## [Demo](https://anquan.huggy.moe)
 
 ![image.png](https://i.loli.net/2019/10/03/PUq3LwSX5ABZrHn.png)
