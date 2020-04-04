@@ -30,7 +30,7 @@
 现在的网站图标 psd 在 /public/img/sf.psd
 
 ## 生成版本号 (参照JENKINSFILE)
-    node genbuild.js GIT_COMMIT_HASH
+    node genbuild.json.js GIT_COMMIT_HASH
 
 ## 调试
     yarn serve
