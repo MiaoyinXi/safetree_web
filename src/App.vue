@@ -14,6 +14,7 @@
               <p style="text-align:center;">整个班的安全作业都无忧了 再也不用催家长/学生们了～
                 <br>为了保障每个同学能够顺利完成安全作业。完成速度会慢点，大概需要两分钟左右时间 请不要重复提交。
               </p>
+              <h2 style="text-align:center;color:red;">请大家低调使用 不要宣传</h2>
             </v-card-text>
             <v-card-actions>
               <!--<v-textarea name="teachers_login" label="批量登录老师账号" hint="账号[空格]密码 每个一行"></v-textarea>-->
@@ -93,7 +94,7 @@
                     </v-data-table>
                     <v-card-actions>
                       <v-btn @click="dialog=false">退出登录</v-btn>
-                      <v-btn color="pink lighten-1" @click="step(2)" dark>下一步</v-btn>
+                      <v-btn color="primary" @click="step(2)" dark>下一步</v-btn>
                     </v-card-actions>
                     <v-card>
                       <v-card-text>
@@ -189,23 +190,22 @@
               <v-card-title>
                 <span class="headline">安全教育平台助手使用条款</span>
               </v-card-title>
-              <v-card-text>上次更新 2019-08-17 21:29:00
+              <v-card-text>上次更新 2020-04-15 23:00:00
                 <br><br>安全教育平台助手是由 huggy 提供的服务，本服务条款（下称“服务条款”）是您与 huggy 关于您（“您”或“用户”）访问和使用安全教育平台助手的主要协议。
                 <h3>隐私策略</h3>
-                <span>1.您的IP地址会被用来识别安全教育平台的登录网址，因此不同地方的ip使用本服务可能会登录不了，另外本站不向欧盟用户提供服务。</span>
+                <span>1.您的IP地址会被用来识别安全教育平台的登录网址，因此不同地方的ip使用本服务可能会登录不了，根据 gdpr 政策，本站不向欧盟国家提供服务。</span>
                 <br>
-                <span>2.您登录使用的账号/密码以及老师账号/学生账号的 COOKIE 可能会在日志中被记录下来，以便供错误跟踪，处理，请悉知。</span>
+                <span>2.您登录使用的账号/密码以及老师账号/学生账号的 Cookie 可能会在日志中被记录下来，以便供错误跟踪，处理</span>
                 <br>
                 <span>3.本站绝对不向第三方透露/售卖任何资料与数据</span>
                 <h3>免责声明</h3>
-                <span>您在本网站的任何操作若导致被您所在的市安全教育平台黑名单、问责、罚款，被上级领导问话，均与本人无关，本人不承担任何相关责任。</span>
+                <span>您在本网站的任何操作若导致被您所在的市安全教育平台黑名单、问责、罚款，被上级领导问话，均与作者无关，作者不承担任何相关责任。</span>
                 <h3>使用</h3>
-                <span>本网站只需要输入老师的安全教育平台密码 登录 再点几下等待完成即刻完全全班作业。</span>
+                <span>本网站只需要输入老师的安全教育平台密码 登录 点击需要完成的课程，等待几分钟完成即刻完成班上的安全作业。</span>
                 <h3>技术支持</h3>
                 <span>如果您有任何问题、建议、意见，或者程序运行中遇到了任何错误请发邮件到 <code>i@huggy.moe</code>来反馈</span>
                 <h3>开源</h3>
                 <span>本程序前端在 <a href="https://github.com/xiao201261/safetree_web" target="_github">https://github.com/xiao201261/safetree_web</a> 中开源并且遵循 <a href="https://github.com/xiao201261/safetree_web/blob/master/LICENSE" target="_github" >MIT</a> 开发协议。
-                  <br>使用者可自由修改网页也可用于商业用途，或者自己修改使用。
                   <br>本程序后端暂时不开源，也许将来不维护后会放出源码。部分登录/做题代码可以参考我在2017年的 <a href="https://gist.github.com/xiao201261/e623f93b7bcb93dddcf24cef6f0713ad" target="_gist">gist</a> 供研究。
                 </span>
                 <br><br><br><br><br><br>
@@ -214,7 +214,7 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="green lighten-1" dark @click="blank_page">不同意</v-btn>
-                <v-btn color="grey lighten-3" @click="terms_agree">同意</v-btn>
+                <v-btn color="red" @click="terms_agree">同意</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
@@ -240,7 +240,8 @@ import axios from 'axios'
 import donate from './components/donate.vue'
 
 console.log(`%c 安全教育平台助手 %c Copyright \xa9 2018-%s \n  __                                               \n/  |                                              \n$$ |____   __    __   ______    ______   __    __ \n$$      \ /  |  /  | /      \  /      \ /  |  /  |\n$$$$$$$  |$$ |  $$ |/$$$$$$  |/$$$$$$  |$$ |  $$ |\n$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |\n$$ |  $$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |\n$$ |  $$ |$$    $$/ $$    $$ |$$    $$ |$$    $$ |\n$$/   $$/  $$$$$$/   $$$$$$$ | $$$$$$$ | $$$$$$$ |\n                    /  \__$$ |/  \__$$ |/  \__$$ |\n                    $$    $$/ $$    $$/ $$    $$/ \n                     $$$$$$/   $$$$$$/   $$$$$$/  `, 'font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size:4em;color:#00bbee;-webkit-text-fill-color:#ff69b4;-webkit-text-stroke: 1px #ff69b4;', "font-size:12px;color:#999999;", (new Date).getFullYear())
-axios.defaults.baseURL = 'http://127.0.0.1:3000/api'
+axios.defaults.baseURL = 'https://aq.gayhub.xyz:18444/api'
+//axios.defaults.baseURL = 'http://127.0.0.1:3000/api'
 if(process.env.NODE_ENV === 'production')
   axios.defaults.baseURL = 'https://aq.gayhub.xyz:8443/api'
 
@@ -259,7 +260,7 @@ export default {
       timeline_show : false,
       drawer: undefined,
       build: require('../build.json'),
-      footer: 'Copyright © huggy, 2019',
+      footer: 'Copyright © huggy, 2020',
       title: '安全教育平台助手',
       progress_value: 0,
       progress_query: true,
@@ -291,8 +292,9 @@ export default {
       complete_status: []
     }),
     async mounted(){
+      // 夜间模式判断，来源忘记哪里了 随便搜索下吧？
       let media = window.matchMedia('(prefers-color-scheme: dark)');
-      let callback = (e) => {
+      let darkcallback = (e) => {
           let prefersDarkMode = e.matches;
           if (prefersDarkMode) {
             this.$vuetify.theme.dark = true
@@ -301,11 +303,13 @@ export default {
           }
       }
       if (typeof media.addEventListener === 'function') {
-          media.addEventListener('change', callback);
+          media.addEventListener('change', darkcallback)
       } else if (typeof media.addListener === 'function') {
-          media.addListener(callback);
+          media.addListener(darkcallback)
       }
+      darkcallback(media)
       try {
+        //网站更新检测
         let data = await axios({
           url: '/version.json?_t' + new Date().getTime(),
           baseURL: '/'
@@ -314,12 +318,13 @@ export default {
         if(urlhash)
           window.history.replaceState( {} , '', '/' );
         if(data.data.hash !== this.build.hash && urlhash !== data.data.hash)
-          location.href = '?hash=' + data.data.hash
+          location.reload(true) //听说 直接reload(true) 就能忽略掉缓存 那我就这样试了 上面urlhash算是遗留代码 这半年内更新了后在去掉
+        //  location.href = '?hash=' + data.data.hash
         
       } catch (error) {
-        this.overlay = true
+        this.overlay = true // 断网提示
       }
-      if(!localStorage.terms){
+      if(!localStorage.terms1){
         this.terms = true
       }
       try {
@@ -376,7 +381,7 @@ export default {
             this.v2 = data.students
             this.dialog = true
             if(this.v1.length === 0){
-              this.snackbar_text = "您的班级已经完成了全部已完成的作业 要做当地专题作业请继续"
+              this.snackbar_text = "您的班级已经完成了全部已完成的作业 要做专题作业请继续"
               this.snackbar_color = "success"
               this.snackbar = true
             }
@@ -393,7 +398,7 @@ export default {
       },
       terms_agree () {
         this.terms = false
-        localStorage.terms='ok'
+        localStorage.terms1 = 'ok'
       },
       step(s){
         switch (s) {
