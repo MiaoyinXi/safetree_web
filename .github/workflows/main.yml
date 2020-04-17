@@ -5,21 +5,32 @@ jobs:
     name: build web
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - uses: borales/actions-yarn@v2.0.0
+      - uses: actions/checkout@v2.1.0
+        
+      - uses: borales/actions-yarn@v2.1.0
         with:
           cmd: install
-# check https://stackoverflow.com/questions/57968497/how-do-i-set-an-env-var-with-a-bash-expression-in-github-actions
+
+      # check https://stackoverflow.com/questions/57968497/how-do-i-set-an-env-var-with-a-bash-expression-in-github-actions
       - name: set GITHUB_SHA env
         run: echo ::set-env name=GITHUB_SHA::$(echo $GITHUB_SHA)
+      
       - name: generate build version
         run: node genbuild.json.js ${{ env.GITHUB_SHA }}
+      
       - uses: borales/actions-yarn@v2.0.0
         with:
           cmd: build          
+      
       - name: Upload artifact
         uses: actions/upload-artifact@v1.0.0
         with:
           name: safetree.zip
           path:  dist
-        
+      - name: Release to github pages
+        uses: crazy-max/ghaction-github-pages@v1.4.0
+        env:
+          GITHUB_PAT: ${{ secrets.PAT }}
+        with:
+          build_dir: dist
+          target_branch: gh-pages
