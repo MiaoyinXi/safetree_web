@@ -312,7 +312,7 @@ export default {
         //网站更新检测
         let data = await axios({
           url: '/version.json?_t' + new Date().getTime(),
-          baseURL: '/'
+          baseURL: './'
         })
         let urlhash = new URL(location.href).searchParams.get('hash')
         if(urlhash)
