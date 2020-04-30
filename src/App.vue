@@ -8,7 +8,6 @@
   <v-content>
     <v-container>
       <v-layout column justify-center align-center>
-        <v-flex xs12 sm8 md6>
           <v-card class="elevation-3">
             <v-card-text>
               <p style="text-align:center;">整个班的安全作业都无忧了 再也不用催家长/学生们了～
@@ -18,14 +17,13 @@
             </v-card-text>
             <v-card-actions>
               <!--<v-textarea name="teachers_login" label="批量登录老师账号" hint="账号[空格]密码 每个一行"></v-textarea>-->
-              <v-form ref="form" v-model="valid" lazy-validation style="margin:auto;" class="text-xs-center">
+              <v-form ref="form" v-model="valid" lazy-validation style="margin:auto;">
                 <v-text-field v-model="username" prepend-icon="account_circle" :rules="usernamerules" label="教师用户名" required></v-text-field>
                 <v-text-field v-model="password" prepend-icon="https" :rules="passwordrules" label="密码" required type="password"></v-text-field>
                 <v-btn color="primary" :disabled="!valid" :block=true @click="login">登录</v-btn>
               </v-form>
             </v-card-actions>
           </v-card>
-        </v-flex>
         <v-flex v-if="joinurl" xs12 sm8 md6>
           <v-card>
             <v-card-text class="text-xs-center">
@@ -41,11 +39,8 @@
             :key="i"
             :color="year.color"
             small>
-            <span
-              slot="opposite"
-              :class="`headline font-weight-bold ${year.color}--text`"
-              v-text="year.time"></span>
-              <div class="py-3">
+            <span slot="opposite" :class="`headline font-weight-bold ${year.color}--text`" v-text="year.time"></span>
+            <div class="py-3">
               <div>
                 {{year.text}}
               </div>
@@ -135,7 +130,8 @@
                     </v-card-actions>
                   </v-stepper-content>
                   <v-stepper-content step="3" style="text-align:center;">
-                    <p>提交队列 已完成 {{ Math.round(progress_value)}}%</p>
+                    <v-alert color="blue-grey" dark dense icon="spa" prominent>做完安全作业后，请不要忘记了宣传安全工作的仍然是非常重要的，请使用班会课或者其它空闲时间向同学们强调安全问题。</v-alert>
+                    <p>提交队列 已完成 {{ Math.round(progress_value) }}%</p>
                     <v-progress-linear
                       :indeterminate="progress_query"
                       :active="progress_show"
@@ -144,9 +140,9 @@
                       background-color="green lighten-2"
                       :query="true"></v-progress-linear>
                       <p>{{donate_description}}</p>
-                      <v-layout justify-center>
+                      <!--<v-layout justify-center>
                         <donate></donate>
-                      </v-layout>
+                      </v-layout>-->
                     <p>以下进度仅供参考 上面的进度条走完其实就可以了</p>
                       <v-row>
                         <v-col v-for="c in complete_status" :key="c.username" lg="2" cols="auto">
@@ -246,7 +242,7 @@ if(process.env.NODE_ENV === 'production')
   axios.defaults.baseURL = 'https://aq.gayhub.xyz:8443/api'
 
 export default {
-    
+
     data: () => ({
       dialog: false,
       e1: 1,
@@ -282,11 +278,11 @@ export default {
       username: '',
       custom_specials: [],
       usernamerules: [
-        v => !!v || '用户名是必须的'
+        v => !!v || '请输入用户名'
       ],
       password: '',
       passwordrules: [
-        v => !!v || '密码是必须的'
+        v => !!v || '请输入密码'
       ],
       teacher_cookie: '',
       complete_status: []
@@ -312,17 +308,20 @@ export default {
         //网站更新检测
         let data = await axios({
           url: '/version.json?_t' + new Date().getTime(),
-          baseURL: './'
+          baseURL: '/'
         })
         let urlhash = new URL(location.href).searchParams.get('hash')
         if(urlhash)
           window.history.replaceState( {} , '', '/' );
-        if(data.data.hash !== this.build.hash && urlhash !== data.data.hash)
+        if(data.data.hash !== this.build.hash && urlhash !== data.data.hash){
+          this.overlay = true // 检测到更新也开滚动条
           location.reload(true) //听说 直接reload(true) 就能忽略掉缓存 那我就这样试了 上面urlhash算是遗留代码 这半年内更新了后在去掉
+        }
         //  location.href = '?hash=' + data.data.hash
         
       } catch (error) {
-        this.overlay = true // 断网提示
+        if(location.protocol !== 'file:') //本地运行就不会有 overlay 也就是断网提示了
+          this.overlay = true // 断网提示
       }
       if(!localStorage.terms1){
         this.terms = true
@@ -340,13 +339,14 @@ export default {
       }
   },
     methods: {
-      async login () {
-        if (this.$refs.form.validate()) {
+      async login (cookie = false) {
+        if(cookie || this.$refs.form.validate()) {
           this.e1 = 1
           this.loading_overlay = true
           let data = await axios.post('login', {
             username: this.username,
             password: this.password,
+            cookie: cookie
           }).catch(e=>{
             this.snackbar_text = "发生错误"
             this.snackbar_color = "error"
