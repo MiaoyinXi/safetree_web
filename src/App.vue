@@ -12,29 +12,21 @@
             <v-card-text>
               <p style="text-align:center;">整个班的安全作业都无忧了 再也不用催家长/学生们了～
                 <br>为了保障每个同学能够顺利完成安全作业。完成速度会慢点，大概需要两分钟左右时间 请不要重复提交。
+                <br>有任何使用上的问题/建议可以发邮件至 <a href="mailto:support+sf@huggy.moe" target="_supporr"><code>support+sf@huggy.moe</code></a> 来反馈
               </p>
               <h2 style="text-align:center;color:red;">请大家低调使用 不要宣传</h2>
             </v-card-text>
             <v-card-actions>
-              <!--<v-textarea name="teachers_login" label="批量登录老师账号" hint="账号[空格]密码 每个一行"></v-textarea>-->
-              <v-form ref="form" v-model="valid" lazy-validation style="margin:auto;">
-                <v-text-field v-model="username" prepend-icon="account_circle" :rules="usernamerules" label="教师用户名" required></v-text-field>
-                <v-text-field v-model="password" prepend-icon="https" :rules="passwordrules" label="密码" required type="password"></v-text-field>
-                <v-btn color="primary" :disabled="!valid" :block=true @click="login">登录</v-btn>
+              <v-form ref="form" v-model="valid" style="margin:auto;" @submit="login(false)">
+                <v-text-field v-model="username" prepend-icon="account_circle" :rules="[v => !!v || '请输入用户名']" label="教师用户名" required></v-text-field>
+                <v-text-field v-model="password" prepend-icon="https" :rules="[v => !!v || '请输入密码']" label="密码" required type="password"></v-text-field>
+                <v-btn color="primary" :loading="loading_overlay" :disabled="!valid" block @click="login(false)">登录</v-btn>
               </v-form>
             </v-card-actions>
           </v-card>
-        <v-flex v-if="joinurl" xs12 sm8 md6>
-          <v-card>
-            <v-card-text class="text-xs-center">
-              <img :src="joinurl" style="width:200px;height:200px;">
-              <p>微信反馈群</p>
-            </v-card-text>
-          </v-card>
-        </v-flex>
         <v-timeline>
           <v-timeline-item
-            v-for="(year, i) in timelines"
+            v-for="(year, i) in timeline"
             v-show="i == 0 || timeline_show"
             :key="i"
             :color="year.color"
@@ -58,9 +50,6 @@
           </v-toolbar>
           <v-card>
             <v-container>
-              <v-alert :value="true" type="success">
-                {{welcome_text}}
-              </v-alert>
               <v-stepper v-model="e1">
                 <v-stepper-header>
                   <v-stepper-step :complete="e1 > 1" step="1">选择课程</v-stepper-step>
@@ -74,7 +63,7 @@
                     <v-alert :value="true" type="info">
                       温馨提示 已授课的课程并且没完成的 才会在这边出现哦～
                       <br>
-                      专题课程会一直显示在下面列表，请不要多次提交。
+                      <b>专题课程会一直显示在下面列表，请不要多次提交。</b>
                     </v-alert>
                     <v-data-table
                       v-model="t1"
@@ -157,15 +146,16 @@
                               {{c.name}}
                             </v-card-text>
                           </v-card>
-                        <!--<v-card>
-                            <v-card-text style="text-align:center;">
-                              {{
-                                (c.data.map((x)=>{
-                                  return x.type + '|' + x.username + ' -> '  + x.value
-                                })).join("\n")
-                              }}
-                            </v-card-text>
-                        </v-card>-->
+                          <!-- 本来是详细日志的输出，没什么灵感 就先注释了-->
+                          <!--<v-card>
+                              <v-card-text style="text-align:center;">
+                                {{
+                                  (c.data.map((x)=>{
+                                    return x.type + '|' + x.username + ' -> '  + x.value
+                                  })).join("\n")
+                                }}
+                              </v-card-text>
+                          </v-card>-->
                       </v-col>
                     </v-row>
                   </v-stepper-content>
@@ -174,12 +164,9 @@
               </v-container>
             </v-card>
           </v-dialog>
-          <v-overlay :value="overlay">
+          <v-overlay :value="offfline_overlay">
             <p>网络不可用/服务器崩溃 请稍后刷新看看</p>
-            <p>您也可以发邮件 <code>i@huggy.moe</code> 来反馈</p>
-          </v-overlay>
-          <v-overlay style="z-index:233;" :value="loading_overlay">
-            <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
+            <p>您也可以发邮件 <code>support+sf@huggy.moe</code> 来反馈</p>
           </v-overlay>
           <v-dialog persistent v-model="terms" width="600px">
             <v-card>
@@ -199,7 +186,7 @@
                 <h3>使用</h3>
                 <span>本网站只需要输入老师的安全教育平台密码 登录 点击需要完成的课程，等待几分钟完成即刻完成班上的安全作业。</span>
                 <h3>技术支持</h3>
-                <span>如果您有任何问题、建议、意见，或者程序运行中遇到了任何错误请发邮件到 <code>i@huggy.moe</code>来反馈</span>
+                <span>如果您有任何问题、建议、意见，或者程序运行中遇到了任何错误请发邮件到 <code>support+sf@huggy.moe</code>来反馈</span>
                 <h3>开源</h3>
                 <span>本程序前端在 <a href="https://github.com/xiao201261/safetree_web" target="_github">https://github.com/xiao201261/safetree_web</a> 中开源并且遵循 <a href="https://github.com/xiao201261/safetree_web/blob/master/LICENSE" target="_github" >MIT</a> 开发协议。
                   <br>本程序后端暂时不开源，也许将来不维护后会放出源码。部分登录/做题代码可以参考我在2017年的 <a href="https://gist.github.com/xiao201261/e623f93b7bcb93dddcf24cef6f0713ad" target="_gist">gist</a> 供研究。
@@ -210,10 +197,11 @@
               <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="green lighten-1" dark @click="blank_page">不同意</v-btn>
-                <v-btn color="red" @click="terms_agree">同意</v-btn>
+                <v-btn color="red" dark @click="terms_agree">同意</v-btn>
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <!-- 本来想做成组件的 太麻烦 还是算了 -->
           <v-snackbar
             v-model="snackbar"
             :color=snackbar_color
@@ -233,58 +221,56 @@
 <script>
 
 import axios from 'axios'
-import donate from './components/donate.vue'
+//import donate from './components/donate.vue'
 
 console.log(`%c 安全教育平台助手 %c Copyright \xa9 2018-%s \n  __                                               \n/  |                                              \n$$ |____   __    __   ______    ______   __    __ \n$$      \ /  |  /  | /      \  /      \ /  |  /  |\n$$$$$$$  |$$ |  $$ |/$$$$$$  |/$$$$$$  |$$ |  $$ |\n$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |\n$$ |  $$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |\n$$ |  $$ |$$    $$/ $$    $$ |$$    $$ |$$    $$ |\n$$/   $$/  $$$$$$/   $$$$$$$ | $$$$$$$ | $$$$$$$ |\n                    /  \__$$ |/  \__$$ |/  \__$$ |\n                    $$    $$/ $$    $$/ $$    $$/ \n                     $$$$$$/   $$$$$$/   $$$$$$/  `, 'font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size:4em;color:#00bbee;-webkit-text-fill-color:#ff69b4;-webkit-text-stroke: 1px #ff69b4;', "font-size:12px;color:#999999;", (new Date).getFullYear())
 axios.defaults.baseURL = 'https://aq.gayhub.xyz:18444/api'
 //axios.defaults.baseURL = 'http://127.0.0.1:3000/api'
 if(process.env.NODE_ENV === 'production')
   axios.defaults.baseURL = 'https://aq.gayhub.xyz:8443/api'
-
 export default {
-
     data: () => ({
       dialog: false,
-      e1: 1,
+      e1: 0,
       t1: [],
       v1: [],
       vv1: [],
       t2: [],
       v2: [],
       vv2: [],
-      timelines: [],
+      
+      timeline: [],
       timeline_show : false,
-      drawer: undefined,
       build: require('../build.json'),
       footer: 'Copyright © huggy, 2020',
       title: '安全教育平台助手',
+
       progress_value: 0,
       progress_query: true,
       progress_show: true,
-      overlay: false,
+      
+      offfline_overlay: false,
+      loading_overlay: false,
+
       special_url: '',
       special_url_input: '',
-      joinurl: false,
-      loading_overlay: false,
+      
       special_data: [],
-      welcome_text: '',
-      snackbar: false,
-      donate_description: undefined,
+
+      donate_description: '',
       class:{},
+
+      snackbar: false,
       snackbar_text: '',
       snackbar_color: '',
+
       terms: false,
       valid: true,
       username: '',
-      custom_specials: [],
-      usernamerules: [
-        v => !!v || '请输入用户名'
-      ],
       password: '',
-      passwordrules: [
-        v => !!v || '请输入密码'
-      ],
       teacher_cookie: '',
+
+      custom_specials: [],
       complete_status: []
     }),
     async mounted(){
@@ -314,14 +300,15 @@ export default {
         if(urlhash)
           window.history.replaceState( {} , '', '/' );
         if(data.data.hash !== this.build.hash && urlhash !== data.data.hash){
-          this.overlay = true // 检测到更新也开滚动条
-          location.reload(true) //听说 直接reload(true) 就能忽略掉缓存 那我就这样试了 上面urlhash算是遗留代码 这半年内更新了后在去掉
+          this.loading_overlay = true // 检测到更新也开滚动条
+          location.href = '?hash=' + data.data.hash
+          //location.reload(true) // Firefox 可行 不过测试了 Chrome/Safari 是嗝屁的
+          // 听说 直接reload(true) 就能忽略掉缓存 那我就这样试了 上面urlhash算是遗留代码 这半年内更新了后在去掉
         }
-        //  location.href = '?hash=' + data.data.hash
         
       } catch (error) {
         if(location.protocol !== 'file:') //本地运行就不会有 overlay 也就是断网提示了
-          this.overlay = true // 断网提示
+          this.offline_overlay = true // 断网提示
       }
       if(!localStorage.terms1){
         this.terms = true
@@ -331,11 +318,11 @@ export default {
         if(data){
           this.footer = data.data.footer
           this.joinurl = data.data.joinqr
-          this.timelines = data.data.timeline
+          this.timeline = data.data.timeline
           this.donate_description = data.donate_description
         }
       } catch (error) {
-        this.overlay = true
+        this.offline_overlay = true
       }
   },
     methods: {
@@ -360,7 +347,6 @@ export default {
             this.snackbar_text = "登录成功"
             this.snackbar_color = "info"
             this.snackbar = true
-            this.welcome_text = '欢迎你 ' + this.username + ' 您的班级一共有 ' + this.class.students.length + ' 位学生 一共还有 ' + this.class.skills.length + ' 次技能训练作业未完成'
             this.teacher_cookie = data.cookie
             this.special_url = data.special_url
             this.special_data = (await axios('data').catch(e=>{
@@ -398,7 +384,7 @@ export default {
       },
       terms_agree () {
         this.terms = false
-        localStorage.terms1 = 'ok'
+        localStorage.terms1='ok'
       },
       step(s){
         switch (s) {
@@ -417,8 +403,8 @@ export default {
                 
                 setTimeout(() => {
                   this.progress_query = false
-                }, 1000)
-              }, 1000)
+                }, 300)
+              }, 500)
               this.run(0)
             }
           default:
@@ -510,14 +496,14 @@ export default {
         if(sid < this.t2.length -1)
           this.run(sid + 1)
         else{
-          this.snackbar_text = "队列已完成"
+          this.snackbar_text = "提交队列已完成，请等待完成"
           this.snackbar_color = "success"
           this.snackbar = true
         }
       }
     },
     components: {
-      donate: donate
+      //donate: donate
     },
   }
 </script>
