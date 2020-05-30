@@ -20,7 +20,7 @@
               <v-form ref="form" v-model="valid" style="margin:auto;" @submit="login(false)">
                 <v-text-field v-model="username" prepend-icon="account_circle" :rules="[v => !!v || '请输入用户名']" label="教师用户名" required></v-text-field>
                 <v-text-field v-model="password" prepend-icon="https" :rules="[v => !!v || '请输入密码']" label="密码" required type="password"></v-text-field>
-                <v-btn color="primary" :loading="loading_overlay" :disabled="!valid" block @click="login(false)">登录</v-btn>
+                <v-btn color="primary" :loading="login_loading" :disabled="!valid" block @click="login(false)">登录</v-btn>
               </v-form>
             </v-card-actions>
           </v-card>
@@ -164,7 +164,7 @@
               </v-container>
             </v-card>
           </v-dialog>
-          <v-overlay :value="offfline_overlay">
+          <v-overlay :value="offline_overlay">
             <p>网络不可用/服务器崩溃 请稍后刷新看看</p>
             <p>您也可以发邮件 <code>support+sf@huggy.moe</code> 来反馈</p>
           </v-overlay>
@@ -224,14 +224,14 @@ import axios from 'axios'
 //import donate from './components/donate.vue'
 
 console.log(`%c 安全教育平台助手 %c Copyright \xa9 2018-%s \n  __                                               \n/  |                                              \n$$ |____   __    __   ______    ______   __    __ \n$$      \ /  |  /  | /      \  /      \ /  |  /  |\n$$$$$$$  |$$ |  $$ |/$$$$$$  |/$$$$$$  |$$ |  $$ |\n$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |\n$$ |  $$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |\n$$ |  $$ |$$    $$/ $$    $$ |$$    $$ |$$    $$ |\n$$/   $$/  $$$$$$/   $$$$$$$ | $$$$$$$ | $$$$$$$ |\n                    /  \__$$ |/  \__$$ |/  \__$$ |\n                    $$    $$/ $$    $$/ $$    $$/ \n                     $$$$$$/   $$$$$$/   $$$$$$/  `, 'font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size:4em;color:#00bbee;-webkit-text-fill-color:#ff69b4;-webkit-text-stroke: 1px #ff69b4;', "font-size:12px;color:#999999;", (new Date).getFullYear())
-axios.defaults.baseURL = 'https://aq.gayhub.xyz:18444/api'
-//axios.defaults.baseURL = 'http://127.0.0.1:3000/api'
+//axios.defaults.baseURL = 'https://aq.gayhub.xyz:18444/api'
+axios.defaults.baseURL = 'http://127.0.0.1:5000/api'
 if(process.env.NODE_ENV === 'production')
   axios.defaults.baseURL = 'https://aq.gayhub.xyz:8443/api'
 export default {
     data: () => ({
       dialog: false,
-      e1: 0,
+      e1: 1,
       t1: [],
       v1: [],
       vv1: [],
@@ -249,8 +249,8 @@ export default {
       progress_query: true,
       progress_show: true,
       
-      offfline_overlay: false,
-      loading_overlay: false,
+      offline_overlay: false,
+      login_loading: false,
 
       special_url: '',
       special_url_input: '',
@@ -300,7 +300,7 @@ export default {
         if(urlhash)
           window.history.replaceState( {} , '', '/' );
         if(data.data.hash !== this.build.hash && urlhash !== data.data.hash){
-          this.loading_overlay = true // 检测到更新也开滚动条
+          this.login_loading = true // 检测到更新也开滚动条
           location.href = '?hash=' + data.data.hash
           //location.reload(true) // Firefox 可行 不过测试了 Chrome/Safari 是嗝屁的
           // 听说 直接reload(true) 就能忽略掉缓存 那我就这样试了 上面urlhash算是遗留代码 这半年内更新了后在去掉
@@ -327,9 +327,16 @@ export default {
   },
     methods: {
       async login (cookie = false) {
+        this.t1 = []
+        this.v1 = []
+        this.vv1 = []
+        this.t2 = []
+        this.v2 = []
+        this.vv2 = []
+        this.custom_specials = []
         if(cookie || this.$refs.form.validate()) {
           this.e1 = 1
-          this.loading_overlay = true
+          this.login_loading = true
           let data = await axios.post('login', {
             username: this.username,
             password: this.password,
@@ -339,7 +346,7 @@ export default {
             this.snackbar_color = "error"
             this.snackbar = true
           })
-          this.loading_overlay = false
+          this.login_loading = false
           if(data.data.ok){
             data = data.data
             this.class = data
@@ -349,11 +356,14 @@ export default {
             this.snackbar = true
             this.teacher_cookie = data.cookie
             this.special_url = data.special_url
-            this.special_data = (await axios('data').catch(e=>{
-              this.snackbar_text = "发生错误"
+            let special_data = (await axios.post('special_data',{
+              city: data.city
+            }).catch(e=>{
+              this.snackbar_text = "获取专题作业时发生错误，请重试"
               this.snackbar_color = "error"
               this.snackbar = true
             })).data
+            this.special_data = special_data.data
             /*if(localStorage.teachers){
               let teachers = JSON.parse(localStorage.teachers)
               teachers.push({
@@ -395,11 +405,11 @@ export default {
             break
           case 3:
             if(this.t2.length > 0){
-              this.loading_overlay = true
+              this.login_loading = true
               this.complete_status = this.t2
               setTimeout(() => {
                 this.e1 = 3
-                this.loading_overlay = false
+                this.login_loading = false
                 
                 setTimeout(() => {
                   this.progress_query = false
