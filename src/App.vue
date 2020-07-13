@@ -64,6 +64,8 @@
                       温馨提示 已授课的课程并且没完成的 才会在这边出现哦～
                       <br>
                       <b>专题课程会一直显示在下面列表，请不要多次提交。</b>
+                      <br>
+                      <b>安全提醒正在测试状态，如果不能完成 请联系我。</b>
                     </v-alert>
                     <v-data-table
                       v-model="t1"
@@ -78,24 +80,33 @@
                     </v-data-table>
                     <v-card-actions>
                       <v-btn @click="dialog=false">退出登录</v-btn>
+                      <v-btn @click="donotice()">做安全提醒(不认识不要点)</v-btn>
+                    </v-card-actions>
+                    <v-card-actions>
                       <v-btn color="primary" @click="step(2)" dark>下一步</v-btn>
                     </v-card-actions>
-                    <v-card>
-                      <v-card-text>
-                        <div style="text-align:center;">
-                          <video width="400" controls>
-                          <source src="@/assets/input_special_url.mp4" type="video/mp4">
-                        </video>
-                        </div>
-                        <v-alert :value="true" type="info">
-                          请按照视频所示，把专题作业链接复制到下面
-                        </v-alert>
-                        </v-card-text>
-                        <v-card-actions>
-                          <v-text-field label="专题作业链接" v-model="special_url_input" required type="text"></v-text-field>
-                        </v-card-actions>
-                        <v-btn color="primary" block @click="get_special(special_url_input)">提交</v-btn>
-                    </v-card>
+
+                    <v-row class="justify-center align-center">
+                      <v-col cols="12" sm="6">
+                        <v-card>
+                          <v-card-text>
+                            <div style="text-align:center;">
+                              <video controls style="max-width:400px;width:100%;">
+                              <source src="@/assets/input_special_url.mp4" type="video/mp4">
+                            </video>
+                            </div>
+                            <v-alert :value="true" type="info">
+                              请按照视频所示，把专题作业链接复制到下面
+                            </v-alert>
+                            </v-card-text>
+                            <v-card-actions>
+                              <v-text-field label="专题作业链接" v-model="special_url_input" required type="text"></v-text-field>
+                            </v-card-actions>
+                            <v-btn color="primary" block @click="get_special(special_url_input)">提交</v-btn>
+                        </v-card>
+                      </v-col>
+                      
+                    </v-row>
                   </v-stepper-content>
                   <v-stepper-content step="2">
                     <v-alert :value="true" type="error">
@@ -106,7 +117,7 @@
                       hide-default-footer
                       show-select
                       :items-per-page=200
-                      :headers="[{text:'用户名',value:'username'},{text:'密码',value:'password'}]"
+                      :headers="[{text:'名字',value:'name',sortable:false},{text:'用户名',value:'username',sortable:false}]"
                       :items="v2"
                       :value="vv2"
                       item-key="username">
@@ -129,9 +140,6 @@
                       background-color="green lighten-2"
                       :query="true"></v-progress-linear>
                       <p>{{donate_description}}</p>
-                      <!--<v-layout justify-center>
-                        <donate></donate>
-                      </v-layout>-->
                     <p>以下进度仅供参考 上面的进度条走完其实就可以了</p>
                       <v-row>
                         <v-col v-for="c in complete_status" :key="c.username" lg="2" cols="auto">
@@ -221,7 +229,6 @@
 <script>
 
 import axios from 'axios'
-//import donate from './components/donate.vue'
 
 console.log(`%c 安全教育平台助手 %c Copyright \xa9 2018-%s \n  __                                               \n/  |                                              \n$$ |____   __    __   ______    ______   __    __ \n$$      \ /  |  /  | /      \  /      \ /  |  /  |\n$$$$$$$  |$$ |  $$ |/$$$$$$  |/$$$$$$  |$$ |  $$ |\n$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |$$ |  $$ |\n$$ |  $$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |$$ \__$$ |\n$$ |  $$ |$$    $$/ $$    $$ |$$    $$ |$$    $$ |\n$$/   $$/  $$$$$$/   $$$$$$$ | $$$$$$$ | $$$$$$$ |\n                    /  \__$$ |/  \__$$ |/  \__$$ |\n                    $$    $$/ $$    $$/ $$    $$/ \n                     $$$$$$/   $$$$$$/   $$$$$$/  `, 'font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size:4em;color:#00bbee;-webkit-text-fill-color:#ff69b4;-webkit-text-stroke: 1px #ff69b4;', "font-size:12px;color:#999999;", (new Date).getFullYear())
 //axios.defaults.baseURL = 'https://aq.gayhub.xyz:18444/api'
@@ -231,7 +238,7 @@ if(process.env.NODE_ENV === 'production')
 export default {
     data: () => ({
       dialog: false,
-      e1: 1,
+      e1: 0,
       t1: [],
       v1: [],
       vv1: [],
@@ -271,7 +278,8 @@ export default {
       teacher_cookie: '',
 
       custom_specials: [],
-      complete_status: []
+      complete_status: [],
+      noticeflag: false
     }),
     async mounted(){
       // 夜间模式判断，来源忘记哪里了 随便搜索下吧？
@@ -333,7 +341,8 @@ export default {
         this.t2 = []
         this.v2 = []
         this.vv2 = []
-        this.custom_specials = []
+        this.custom_specials = [],
+        this.noticeflag = false
         if(cookie || this.$refs.form.validate()) {
           this.e1 = 1
           this.login_loading = true
@@ -401,7 +410,6 @@ export default {
           case 2:
             if(this.t1.length > 0)
               this.e1 = 2
-              this.t2 = []
             break
           case 3:
             if(this.t2.length > 0){
@@ -415,6 +423,7 @@ export default {
                   this.progress_query = false
                 }, 300)
               }, 500)
+              console.log(this.t2)
               this.run(0)
             }
           default:
@@ -423,6 +432,11 @@ export default {
         setTimeout(() => {
           this.$vuetify.goTo(0)
         }, 500)
+      },
+      async donotice() {
+        this.t1 = []
+        this.noticeflag = true
+        this.e1 = 2
       },
       async get_special(url) {
           let data = await axios.post('get_special',{url,city: this.class.city})
@@ -441,7 +455,7 @@ export default {
           if(data.data){
             data = data.data
             this.$set(this.complete_status[sid],'text',data)
-            if(data.length >= count){
+            if(count == 0 || data.length >= count){
               this.$set(this.complete_status[sid],'loading',false)
               this.$set(this.complete_status[sid],'color','success')
               this.$set(this.complete_status[sid],'dark',true)
@@ -466,11 +480,11 @@ export default {
           this.progress_value = ((sid + 1) / this.t2.length) * 100
         let w = this.t1
         let {studentid,username,password} = (this.t2)[sid]
+        await axios('clearlog/' + studentid)
         let skillswork = w.filter((e,i,a)=>{
           return e.type === 0
         })
         let teacher_cookie = this.teacher_cookie
-        await axios('clearlog/' + studentid)
         if(skillswork.length > 0)
           await axios.post('work',{
             studentid: studentid,
@@ -500,9 +514,20 @@ export default {
             special_url: this.special_url,
             teacher_cookie: teacher_cookie
           })
-        
+        // 做安全提醒
+        let countnotice = 0
+        if(this.noticeflag){
+          let data = await axios.post('worknotice',{
+            studentid: studentid,
+            username: username,
+            password: password,
+            city: this.class.city,
+            teacher_cookie: teacher_cookie
+          })
+          countnotice = data.data.data.length
+        }
         if(sid == 0)
-          this.check_complete(sid, countspecialwork + skillswork.length * 2)
+          this.check_complete(sid, countspecialwork + skillswork.length * 2 + countnotice) // 凑合写吧 主要是想重构了
         if(sid < this.t2.length -1)
           this.run(sid + 1)
         else{
@@ -513,7 +538,6 @@ export default {
       }
     },
     components: {
-      //donate: donate
     },
   }
 </script>
